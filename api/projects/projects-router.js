@@ -2,64 +2,37 @@
 
 const express = require("express")
 const projects = require("./projects-model")
+const { checkProjectData, checkProjectID } = require("../middleware/projects") 
+
 
 const router = express.Router()
 
-router.get("/api/projects", (req, res)=> {
+router.get("/api/projects", (req, res, next)=> {
     projects.get()
     .then((project)=> {
         res.json(project)
 
     })
-    .catch((err)=>{
-        console.log(err)
-        res.status(500).json({
-            message: "There was an error"
-        })
-    })
+    .catch(next)
 })
 
-router.get("/api/projects/:id", (req, res)=> {
-    projects.get(req.params.id)
-    .then((project)=> {
-        if (project){
-            res.json(project)
-        } else {
-            res.status(404).json({
-                message: "The project couldn't be found"
-            })
-        }
+router.get("/api/projects/:id", checkProjectID(), (req, res)=> {
+//project gets attached to the request in checkProjectID
+    res.json(req.project)
 
-        })
-        .catch((err)=> {
-           console.log(err)
-           res.status(500).json({
-              message: "There was an error"
-           })
-        })
     })
 
-    router.post("/api/projects", (req, res)=> {
-        if (!req.body.name || !req.body.description){
-           return res.status(400).json({
-                message: "missing name or description"
-            })
-        }
+    router.post("/api/projects", checkProjectData(), (req, res, next)=> {
         
         projects.insert(req.body)
         .then((project)=> {
             res.status(201).json(project)
         })
-        .catch((err)=> {
-            console.log(err)
-            res.status(500).json({
-              message: "There was an error"
-            })
-        })
+        .catch(next)
     })
 
  
-router.put("/api/projects/:id", (req, res)=> {
+router.put("/api/projects/:id", checkProjectData(), checkProjectID(), (req, res, next)=> {
     projects.update(req.params.id, req.body)
      .then((project)=> {
         if(project){
@@ -70,15 +43,10 @@ router.put("/api/projects/:id", (req, res)=> {
             })
         }
      })
-     .catch((err)=> {
-        console.log(err)
-        res.status(500).json({
-            message: "there was an error"
-        })
-    })
+     .catch(next)
 })
 
-router.delete("/api/projects/:id", (req, res)=> {
+router.delete("/api/projects/:id", checkProjectID(), (req, res, next)=> {
     projects.remove(req.params.id)
      .then((count)=> {
         if (count > 0){
@@ -91,15 +59,10 @@ router.delete("/api/projects/:id", (req, res)=> {
             })
         }
      })
-     .catch((err)=> {
-        console.log(err)
-        res.status(500).json({
-            message: "there was an error"
-        })
-     })
+     .catch(next)
 })
 
-router.get("/api/projects/:id/actions", (req, res)=> {
+router.get("/api/projects/:id/actions", checkProjectID(), (req, res, next)=> {
     projects.getProjectActions(req.params.id)
     .then((actions)=> {
         if (actions){
@@ -110,12 +73,8 @@ router.get("/api/projects/:id/actions", (req, res)=> {
             })
         }
     })
-    .catch((err)=> {
-        console.log(err)
-        res.status(500).json({
-            message: "there was an error"
-        })
-    })
+    .catch(next)
+    
 })
 
 

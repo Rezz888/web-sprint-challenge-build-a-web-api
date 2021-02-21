@@ -1,61 +1,40 @@
 // Write your "actions" router here!
 const express = require("express")
 const actions = require("./actions-model")
+const { checkActionID, checkActionData } = require("../middleware/actions")
 
 const router = express.Router()
 
 
-router.get("/api/actions", (req, res)=> {
+router.get("/api/actions", (req, res, next)=> {
    actions.get()
     .then((actions)=> {
         res.json(actions)
     })
-    .catch((err)=> {
-       console.log(err)
-       res.status(500).json({
-           message: "there was an error retrieving the data",
-       })
-    })
+    .catch(next)
+    // This is shorthand for the below code (commented out)
+    // .catch((err)=> {
+    //    next(err)
+    // })
 })
 
-router.get("/api/actions/:id", (req, res)=> {
-    actions.get(req.params.id)
-    .then((action)=> {
-        if(action){
-            res.json(action)
-        } else {
-            res.status(404).json({
-                message: "The action does not exist"
-            })
-        }
-    })
-    .catch((err)=> {
-        console.log(err)
-        res.status(500).json({
-           message: "there was an error",
-        })
-    })
+router.get("/api/actions/:id", checkActionID(), (req, res)=> {
+    // action gets attached to the request in checkActionID
+    res.json(req.action)
 })
 
-router.post("/api/actions", (req, res)=> {
-   if (!req.body.description || !req.body.notes || !req.body.project_id){
-       return res.status(400).json({
-           message: "missing description or notes or project_id"
-       })
-   }
+router.post("/api/actions", checkActionData(), (req, res, next)=> {
+    
     actions.insert(req.body)
         .then((action)=> {
             res.status(201).json(action)
         })
         .catch((err)=> {
-            console.log(err)
-            res.status(500).json({
-                message: "there was an error"
-            })
+            next(err)
         })
 })
  
- router.put("/api/actions/:id", (req, res)=> {
+ router.put("/api/actions/:id", checkActionData(), checkActionID(), (req, res, next)=> {
      actions.update(req.params.id, req.body)
      .then((action)=> {
         if(action){
@@ -67,14 +46,11 @@ router.post("/api/actions", (req, res)=> {
         }
      })
      .catch((err)=> {
-        console.log(err)
-        res.status(500).json({
-            message: "there was an error"
-        })
+        next(err)
     })
  })
 
- router.delete("/api/actions/:id", (req, res)=> {
+ router.delete("/api/actions/:id", checkActionID(), (req, res, next)=> {
      actions.remove(req.params.id)
      .then((count)=> {
         if (count > 0){
@@ -88,10 +64,7 @@ router.post("/api/actions", (req, res)=> {
         }
      })
      .catch((err)=> {
-        console.log(err)
-        res.status(500).json({
-            message: "there was an error"
-        })
+        next(err)
      })
  })
 
