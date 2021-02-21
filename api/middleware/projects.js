@@ -21,7 +21,7 @@ function checkProjectID(){
                 next()
             } else {
                 res.status(404).json({
-                    message: "The project couldn't be found"
+                    message: "The content couldn't be found"
                 })
             }
     
