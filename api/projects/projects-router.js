@@ -99,5 +99,24 @@ router.delete("/api/projects/:id", (req, res)=> {
      })
 })
 
+router.get("/api/projects/:id/actions", (req, res)=> {
+    projects.getProjectActions(req.params.id)
+    .then((actions)=> {
+        if (actions){
+            res.json(actions)
+        } else {
+            res.status(404).json({
+                message: "the project does not exist"
+            })
+        }
+    })
+    .catch((err)=> {
+        console.log(err)
+        res.status(500).json({
+            message: "there was an error"
+        })
+    })
+})
+
 
 module.exports = router
